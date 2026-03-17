@@ -135,16 +135,17 @@ async function analyzeAudio() {
   const fileInput = document.getElementById("fileInput").files[0];
   let audioToSend = fileInput ? fileInput : recordedBlob;
 
+  const responseBox = document.getElementById("responseText");
+
   if (!audioToSend) {
-    alert("Upload or record audio first");
+    alert("Upload or record audio first!");
     return;
   }
 
   const formData = new FormData();
   formData.append("file", audioToSend, "audio.webm");
 
-  const responseBox = document.getElementById("responseText");
-  responseText.innerHTML = "Processing...\n";
+  responseBox.innerText = "Processing...\n";
 
   try {
     const res = await fetch("https://ai-emotutor.onrender.com/analyze/", {
@@ -152,23 +153,42 @@ async function analyzeAudio() {
       body: formData
     });
 
-    
     const data = await res.json();
 
-    document.getElementById("responseText").innerText = data.response;
+    console.log("API RESPONSE:", data); // 🔥 DEBUG
 
-    if (data.audio) {
-      const audioPlayer = document.getElementById("audioPlayer");
-      audioPlayer.src = "https://ai-emotutor.onrender.com" + data.audio;
-      audioPlayer.play();
+    // 🚨 safety check
+    if (!data.steps || data.steps.length === 0) {
+      responseBox.innerText = "No steps received";
+      return;
     }
-    
+
+    // 🔥 FIXED STEP LOOP (async/await)
+    responseBox.innerText = "";
+
+    for (let i = 0; i < data.steps.length; i++) {
+      responseBox.innerText += data.steps[i] + "\n";
+
+      // wait before next step
+      await new Promise(resolve => setTimeout(resolve, 700));
+    }
+
+    // ✅ show final response
+    responseBox.innerText = data.response;
+
+    // 🔊 play audio
+    if (data.audio) {
+      const player = document.getElementById("audioPlayer");
+      player.src = "https://ai-emotutor.onrender.com" + data.audio;
+      document.getElementById("audioOutputBox").classList.remove("hidden");
+      player.play();
+    }
+
   } catch (err) {
     console.error(err);
-    alert("Error connecting to backend");
+    responseBox.innerText = "Error connecting backend";
   }
 }
-
 </script>
 
 </body>
