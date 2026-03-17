@@ -5,6 +5,9 @@ import requests
 from emotion import detect_emotion
 from tutor import tutor_mode, generate_response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
+app.mount("/audio", StaticFiles(directory="."), name="audio")
 
 app.add_middleware(
     CORSMiddleware,
