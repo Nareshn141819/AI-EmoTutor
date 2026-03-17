@@ -27,9 +27,11 @@ def generate_response(question, mode):
 
     Give a clear answer.
     """
-
+    
     try:
-        response = model.generate_content(prompt)
+        response = model.generate_content(f"Question: {question}, Mode: {mode}")
+        print("Gemini success")
         return response.text
-    except:
+    except Exception as e:
+        print("Gemini ERROR:", e)
         return "Error generating response"
