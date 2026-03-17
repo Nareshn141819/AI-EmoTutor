@@ -9,7 +9,7 @@ function App() {
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await axios.post("http://127.0.0.1:8000/analyze/", formData);
+    const res = await axios.post("https://your-backend.onrender.com/analyze/", formData);
 
     setResult(res.data);
   };
