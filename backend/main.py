@@ -58,43 +58,50 @@ def murf_voice(text):
     return file_path
 
 
+from fastapi.responses import JSONResponse
+
 @app.post("/analyze/")
 async def analyze(file: UploadFile = File(...)):
 
+    steps = []
+
     print("Step 1: File received")
+    steps.append("Step 1: File received")
 
     file_path = f"temp_{file.filename}"
 
-    # Save uploaded/recorded audio
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
     print("Step 2: Text ready")
+    steps.append("Step 2: Text ready")
 
-    # TEMP text (since no STT now)
     text = "Student voice input"
 
     print("Step 3: Emotion detected!")
+    steps.append("Step 3: Emotion detected!")
 
     emotion = detect_emotion(text)
 
     print("Step 4: Response starting")
+    steps.append("Step 4: Response starting")
 
     mode = tutor_mode(emotion)
     tutor_text = generate_response(text, mode)
 
     print("Step 5: Response done")
+    steps.append("Step 5: Response done")
 
     print("Step 6: AI Starting speech generating...")
+    steps.append("Step 6: AI Starting speech generating...")
 
     audio_file = murf_voice(tutor_text)
 
     print("Step 7: Speech Done...")
+    steps.append("Step 7: Speech Done...")
 
-    return {
-        "text": text,
-        "emotion": emotion,
-        "mode": mode,
+    return JSONResponse({
+        "steps": steps,
         "response": tutor_text,
         "audio": f"/audio/{audio_file}" if audio_file else None
-    }
+    })
