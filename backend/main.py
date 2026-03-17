@@ -80,12 +80,12 @@ async def analyze(file: UploadFile = File(...)):
     tutor_text = generate_response(text, mode)
 
     # Murf voice
-    audio_file = None
+    audio_file = audio_file = murf_voice(tutor_text)
 
     return {
         "text": text,
         "emotion": emotion,
         "mode": mode,
         "response": tutor_text,
-        "audio": None
+        "audio": f"/audio/{audio_file}"
     }
