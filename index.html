@@ -152,6 +152,17 @@ async function analyzeAudio() {
       body: formData
     });
 
+    
+    const data = await res.json();
+
+    document.getElementById("responseText").innerText = data.response;
+
+    if (data.audio) {
+      const audioPlayer = document.getElementById("audioPlayer");
+      audioPlayer.src = "https://ai-emotutor.onrender.com" + data.audio;
+      audioPlayer.play();
+    }
+    
   } catch (err) {
     console.error(err);
     alert("Error connecting to backend");
