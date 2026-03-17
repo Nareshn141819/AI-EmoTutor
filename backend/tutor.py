@@ -30,8 +30,8 @@ def generate_response(question, mode):
     
     try:
         response = model.generate_content(f"Question: {question}, Mode: {mode}")
-        print("Gemini success")
+        print("success")
         return response.text
     except Exception as e:
-        print("Gemini ERROR:", e)
+        print("Gemini AI ERROR:", e)
         return "Error generating response"
