@@ -9,7 +9,7 @@ app = FastAPI()
 
 whisper_model = whisper.load_model("base")
 
-MURF_API_KEY = "YOUR_MURF_API_KEY"
+MURF_API_KEY = "ap2_501afa7d-06f2-4604-a122-7ca6a91a0e64"
 
 
 def murf_voice(text):
