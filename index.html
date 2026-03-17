@@ -104,8 +104,6 @@ let recordedBlob = null;
 async function startRecording() {
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-  
-
   mediaRecorder = new MediaRecorder(stream);
 
   mediaRecorder.ondataavailable = event => {
@@ -129,23 +127,21 @@ function stopRecording() {
 }
 
 // 🚀 Send audio (file OR recording)
-
-async function analyzeAudio() {
+async function sendAudio() {
 
   const fileInput = document.getElementById("fileInput").files[0];
+
   let audioToSend = fileInput ? fileInput : recordedBlob;
 
-  const responseBox = document.getElementById("responseText");
-
   if (!audioToSend) {
-    alert("Upload or record audio first!");
+    alert("Upload or record audio first");
     return;
   }
 
   const formData = new FormData();
-  formData.append("file", audioToSend, "audio.webm");
+  formData.append("file", audioToSend, "recording.wav");
 
-  responseBox.innerText = "Processing...\n";
+  document.getElementById("responseText").innerText = "Processing...";
 
   try {
     const res = await fetch("https://ai-emotutor.onrender.com/analyze/", {
@@ -155,40 +151,24 @@ async function analyzeAudio() {
 
     const data = await res.json();
 
-    console.log("API RESPONSE:", data); // 🔥 DEBUG
+    console.log("FULL RESPONSE:", data);
 
-    // 🚨 safety check
-    if (!data.steps || data.steps.length === 0) {
-      responseBox.innerText = "No steps received";
-      return;
-    }
+    document.getElementById("responseText").innerText = data.response;
 
-    // 🔥 FIXED STEP LOOP (async/await)
-    responseBox.innerText = "";
-
-    for (let i = 0; i < data.steps.length; i++) {
-      responseBox.innerText += data.steps[i] + "\n";
-
-      // wait before next step
-      await new Promise(resolve => setTimeout(resolve, 700));
-    }
-
-    // ✅ show final response
-    responseBox.innerText = data.response;
-
-    // 🔊 play audio
+    // 🔊 Play AI voice
     if (data.audio) {
-      const player = document.getElementById("audioPlayer");
-      player.src = "https://ai-emotutor.onrender.com" + data.audio;
-      document.getElementById("audioOutputBox").classList.remove("hidden");
-      player.play();
+      const audioPlayer = document.getElementById("audioPlayer");
+      audioPlayer.src = "https://ai-emotutor.onrender.com" + data.audio;
+      audioPlayer.style.display = "block";
+      audioPlayer.play();
     }
 
   } catch (err) {
-    console.error(err);
-    responseBox.innerText = "Error connecting backend";
+    console.error("ERROR:", err);
+    alert("Backend error");
   }
 }
+
 </script>
 
 </body>
