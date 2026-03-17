@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+openai-whisper
+torch
+transformers
+requests
+google-generativeai
+python-multipart
