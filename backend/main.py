@@ -6,6 +6,8 @@ from emotion import detect_emotion
 from tutor import tutor_mode, generate_response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+import google.generativeai as genai
+
 
 app = FastAPI()
 
@@ -19,6 +21,10 @@ app.add_middleware(
 
 # ✅ Serve audio files
 app.mount("/audio", StaticFiles(directory="."), name="audio")
+
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+model = genai.GenerativeModel("gemini-pro")
 
 # ✅ API Keys from environment
 MURF_API_KEY = os.getenv("MURF_API_KEY")
