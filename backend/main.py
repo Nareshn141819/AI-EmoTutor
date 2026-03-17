@@ -1,14 +1,15 @@
 from fastapi import FastAPI, UploadFile, File
-import whisper
 import shutil
 import requests
+import os
 from emotion import detect_emotion
 from tutor import tutor_mode, generate_response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-app.mount("/audio", StaticFiles(directory="."), name="audio")
+app = FastAPI()
 
+# ✅ CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,13 +17,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app = FastAPI()
+# ✅ Serve audio files
+app.mount("/audio", StaticFiles(directory="."), name="audio")
 
-whisper_model = whisper.load_model("base")
+# ✅ API Keys from environment
+MURF_API_KEY = os.getenv("MURF_API_KEY")
 
-MURF_API_KEY = "ap2_501afa7d-06f2-4604-a122-7ca6a91a0e64"
 
-
+# 🔊 Murf Voice
 def murf_voice(text):
     url = "https://api.murf.ai/v1/speech/generate"
 
@@ -43,7 +45,6 @@ def murf_voice(text):
         return None
 
     data = response.json()
-
     audio_url = data["audioFile"]
 
     audio_data = requests.get(audio_url).content
@@ -64,14 +65,14 @@ async def analyze(file: UploadFile = File(...)):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # Speech to text
-    result = whisper_model.transcribe(file_path)
-    text = result["text"]
+    # ❌ Removed Whisper (heavy)
+    # ✅ TEMP: fake transcription (until you use API)
+    text = "User uploaded audio"  
 
     # Emotion
     emotion = detect_emotion(text)
 
-    # Tutor logic
+    # Mode
     mode = tutor_mode(emotion)
 
     # Gemini response
