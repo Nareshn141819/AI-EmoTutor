@@ -125,40 +125,50 @@ function stopRecording() {
 }
 
 // 🚀 Send Audio (file OR recording)
-async function sendAudio() {
+const fileInput = document.getElementById("fileInput");
+const responseBox = document.getElementById("responseText");
+const audioPlayer = document.getElementById("audioPlayer");
 
-  let fileInput = document.getElementById("fileInput").files[0];
+async function analyzeAudio() {
 
-  let audioToSend = fileInput ? fileInput : recordedBlob;
+    if (!fileInput.files.length) {
+        alert("Please upload audio file");
+        return;
+    }
 
-  if (!audioToSend) {
-    alert("Upload or record audio first");
-    return;
-  }
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
 
-  const formData = new FormData();
-  formData.append("file", audioToSend);
+    responseBox.innerText = "Processing...";
 
-  try {
-    document.getElementById("responseText").innerText = "Processing...";
+    try {
+        const res = await fetch("https://ai-emotutor.onrender.com/analyze/", {
+            method: "POST",
+            body: formData
+        });
 
-    const res = await fetch("https://ai-emotutor.onrender.com/analyze/"), {
-      method: "POST",
-      body: formData
-    });
+        const data = await res.json();
 
-    const data = await res.json();
+        console.log("API RESPONSE:", data); // 🔍 debug
 
-    document.getElementById("responseText").innerText = data.response;
+        if (!data.response) {
+            responseBox.innerText = "Error: No response from backend";
+            return;
+        }
 
-    const audioPlayer = document.getElementById("audioPlayer");
-    audioPlayer.src = "http://127.0.0.1:8000" + data.audio;
-    audioPlayer.play();
+        responseBox.innerText = data.response;
 
-  } catch (err) {
-    console.error(err);
-    alert("Backend error");
-  }
+        // 🔊 Play audio
+        if (data.audio) {
+            audioPlayer.src = "https://ai-emotutor.onrender.com" + data.audio;
+            audioPlayer.style.display = "block";
+            audioPlayer.play();
+        }
+
+    } catch (err) {
+        console.error("ERROR:", err);
+        responseBox.innerText = "Backend connection failed";
+    }
 }
 
 </script>
