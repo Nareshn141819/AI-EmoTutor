@@ -97,7 +97,9 @@
 </div>
 
   <div class="output">
-    <b>Here is your answer:</b>
+    <b>Here is your answer:
+     <p id="responseText"></p>
+    </b>
     <p id="responseText">Wait</p>
   </div>
 
@@ -114,6 +116,8 @@ let recordedBlob = null;
 // 🎤 Start recording
 async function startRecording() {
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+  
 
   mediaRecorder = new MediaRecorder(stream);
 
@@ -155,6 +159,8 @@ async function analyzeAudio() {
   const stepsBox = document.getElementById("stepsBox");
   stepsBox.innerHTML = "Processing...\n";
 
+  const responseBox = document.getElementById("responseText");
+
   try {
     const res = await fetch("https://ai-emotutor.onrender.com/analyze/", {
       method: "POST",
@@ -163,25 +169,31 @@ async function analyzeAudio() {
 
     const data = await res.json();
 
-    // 🔥 Show steps one by one
-    stepsBox.innerHTML = "";
-    data.steps.forEach((step, index) => {
-      setTimeout(() => {
-        stepsBox.innerHTML += step + "\n";
-        stepsBox.scrollTop = stepsBox.scrollHeight;
-      }, index * 800);
-    });
+    // 🔄 Show logs temporarily
+    let i = 0;
 
-    // Show final response
-    document.getElementById("responseText").innerText = data.response;
+    function showSteps() {
+      if (i < data.steps.length) {
+        responseBox.innerText += data.steps[i] + "\n";
+        i++;
+        setTimeout(showSteps, 600);
+      } else {
+        // ✅ After logs → show final result
+        setTimeout(() => {
+          responseBox.innerText = data.response;
 
-    // Play audio
-    if (data.audio) {
-      const audioPlayer = document.getElementById("audioPlayer");
-      audioPlayer.src = "https://ai-emotutor.onrender.com" + data.audio;
-      audioPlayer.style.display = "block";
-      audioPlayer.play();
+          // 🔊 Play audio
+          if (data.audio) {
+            const player = document.getElementById("audioPlayer");
+            player.src = "https://ai-emotutor.onrender.com" + data.audio;
+            document.getElementById("audioOutputBox").classList.remove("hidden");
+            player.play();
+          }
+        }, 800);
+      }
     }
+
+    showSteps();
 
   } catch (err) {
     console.error(err);
