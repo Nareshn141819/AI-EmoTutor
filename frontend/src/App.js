@@ -9,7 +9,7 @@ function App() {
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await axios.post("https://your-backend.onrender.com/analyze/", formData);
+    const res = await axios.post("https://ai-emotutor.onrender.com", formData);
 
     setResult(res.data);
   };
