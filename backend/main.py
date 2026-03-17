@@ -40,7 +40,7 @@ def murf_voice(text):
         "format": "MP3"
     }
 
-    response = requests.post(url, json=payload, headers=headers)
+    response = requests.post(url, json=payload, headers=headers, timeout=10)
 
     if response.status_code != 200:
         return None
