@@ -61,31 +61,40 @@ def murf_voice(text):
 @app.post("/analyze/")
 async def analyze(file: UploadFile = File(...)):
 
+    print("Step 1: File received")
+
     file_path = f"temp_{file.filename}"
 
+    # Save uploaded/recorded audio
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # ❌ Removed Whisper (heavy)
-    # ✅ TEMP: fake transcription (until you use API)
-    text = "User uploaded audio"  
+    print("Step 2: Text ready")
 
-    # Emotion
+    # TEMP text (since no STT now)
+    text = "Student voice input"
+
+    print("Step 3: Emotion detected!")
+
     emotion = detect_emotion(text)
 
-    # Mode
-    mode = tutor_mode(emotion)
+    print("Step 4: Response starting")
 
-    # Gemini response
+    mode = tutor_mode(emotion)
     tutor_text = generate_response(text, mode)
 
-    # Murf voice
-    audio_file = audio_file = murf_voice(tutor_text)
+    print("Step 5: Response done")
+
+    print("Step 6: AI Starting speech generating...")
+
+    audio_file = murf_voice(tutor_text)
+
+    print("Step 7: Speech Done...")
 
     return {
         "text": text,
         "emotion": emotion,
         "mode": mode,
         "response": tutor_text,
-        "audio": f"/audio/{audio_file}"
+        "audio": f"/audio/{audio_file}" if audio_file else None
     }
