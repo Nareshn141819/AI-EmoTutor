@@ -144,7 +144,7 @@ async function analyzeAudio() {
   formData.append("file", audioToSend, "audio.webm");
 
   const responseBox = document.getElementById("responseText");
- responseBox.innerHTML = "Processing...\n";
+  responseText.innerHTML = "Processing...\n";
 
   try {
     const res = await fetch("https://ai-emotutor.onrender.com/analyze/", {
