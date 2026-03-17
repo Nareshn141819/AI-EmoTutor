@@ -142,7 +142,7 @@ async function sendAudio() {
   try {
     document.getElementById("responseText").innerText = "Processing...";
 
-    const res = await fetch("fetch("https://ai-emotutor.onrender.com"), {
+    const res = await fetch("https://ai-emotutor.onrender.com/analyze/"), {
       method: "POST",
       body: formData
     });
