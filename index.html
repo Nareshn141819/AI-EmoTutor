@@ -86,7 +86,6 @@
 
   <div class="output">
     <b>Here is your answer:
-     <p id="responseText"></p>
     </b>
     <p id="responseText">Wait</p>
   </div>
@@ -144,44 +143,14 @@ async function analyzeAudio() {
   const formData = new FormData();
   formData.append("file", audioToSend, "audio.webm");
 
-  const stepsBox = document.getElementById("stepsBox");
-  stepsBox.innerHTML = "Processing...\n";
-
   const responseBox = document.getElementById("responseText");
+ responseBox.innerHTML = "Processing...\n";
 
   try {
     const res = await fetch("https://ai-emotutor.onrender.com/analyze/", {
       method: "POST",
       body: formData
     });
-
-    const data = await res.json();
-
-    // 🔄 Show logs temporarily
-    let i = 0;
-
-    function showSteps() {
-      if (i < data.steps.length) {
-        responseBox.innerText += data.steps[i] + "\n";
-        i++;
-        setTimeout(showSteps, 600);
-      } else {
-        // ✅ After logs → show final result
-        setTimeout(() => {
-          responseBox.innerText = data.response;
-
-          // 🔊 Play audio
-          if (data.audio) {
-            const player = document.getElementById("audioPlayer");
-            player.src = "https://ai-emotutor.onrender.com" + data.audio;
-            document.getElementById("audioOutputBox").classList.remove("hidden");
-            player.play();
-          }
-        }, 800);
-      }
-    }
-
-    showSteps();
 
   } catch (err) {
     console.error(err);
