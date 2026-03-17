@@ -85,5 +85,5 @@ async def analyze(file: UploadFile = File(...)):
         "emotion": emotion,
         "mode": mode,
         "response": tutor_text,
-        "audio": audio_file
+        "audio": f"/audio/{audio_file}"
     }
