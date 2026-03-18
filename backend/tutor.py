@@ -42,7 +42,7 @@ Student Question:
 """
 
     try:
-        response = model.generate_content(system_prompt)
+        response = model.generate_content(question)
 
         if not response.text:
             return "No response generated"
