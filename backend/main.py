@@ -114,6 +114,8 @@ async def analyze(file: UploadFile = File(...)):
     print("Step 7: Speech Done...")
     steps.append("Step 7: Speech Done...")
 
+    print("Recognized Text:", text)
+
     return JSONResponse({
         "steps": steps,
         "response": tutor_text,
