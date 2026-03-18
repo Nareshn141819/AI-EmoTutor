@@ -73,16 +73,26 @@ async def analyze(file: UploadFile = File(...)):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    print("Step 2: Text ready")
-    steps.append("Step 2: Text ready")
+    # 🎤 AUDIO → TEXT
+    print("Step 2: Converting audio to text...")
+    steps.append("Step 2: Converting audio to text...")
 
-    text = "Student voice input"
+    try:
+        result = whisper_model.transcribe(file_path)
+        text = result["text"]
+    except Exception as e:
+        print("Whisper Error:", e)
+        text = "Could not understand audio"
 
+    print("Recognized Text:", text)
+
+    # 😊 Emotion
     print("Step 3: Emotion detected!")
     steps.append("Step 3: Emotion detected!")
 
     emotion = detect_emotion(text)
 
+    # 🤖 Gemini
     print("Step 4: Response starting")
     steps.append("Step 4: Response starting")
 
@@ -92,6 +102,7 @@ async def analyze(file: UploadFile = File(...)):
     print("Step 5: Response done")
     steps.append("Step 5: Response done")
 
+    # 🔊 Murf
     print("Step 6: AI Starting speech generating...")
     steps.append("Step 6: AI Starting speech generating...")
 
