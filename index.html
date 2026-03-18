@@ -130,20 +130,18 @@ function stopRecording() {
 async function analyzeAudio() {
 
   const fileInput = document.getElementById("fileInput").files[0];
+
   let audioToSend = fileInput ? fileInput : recordedBlob;
 
   if (!audioToSend) {
-    alert("Upload or record audio first!");
+    alert("Upload or record audio first");
     return;
   }
 
   const formData = new FormData();
-  formData.append("file", audioToSend, "audio.webm");
+  formData.append("file", audioToSend, "recording.wav");
 
-  const responseBox = document.getElementById("responseText");
-
-  // 🟡 Show logs in same box
-  responseBox.innerText = "Processing...\n";
+  document.getElementById("responseText").innerText = "Processing...";
 
   try {
     const res = await fetch("https://ai-emotutor.onrender.com/analyze/", {
@@ -153,35 +151,21 @@ async function analyzeAudio() {
 
     const data = await res.json();
 
-    // 🔄 Show logs temporarily
-    let i = 0;
+    console.log("FULL RESPONSE:", data);
 
-    function showSteps() {
-      if (i < data.steps.length) {
-        responseBox.innerText += data.steps[i] + "\n";
-        i++;
-        setTimeout(showSteps, 600);
-      } else {
-        // ✅ After logs → show final result
-        setTimeout(() => {
-          responseBox.innerText = data.response;
+    document.getElementById("responseText").innerText = data.response;
 
-          // 🔊 Play audio
-          if (data.audio) {
-            const player = document.getElementById("audioPlayer");
-            player.src = "https://ai-emotutor.onrender.com" + data.audio;
-            document.getElementById("audioOutputBox").classList.remove("hidden");
-            player.play();
-          }
-        }, 800);
-      }
+    // 🔊 Play AI voice
+    if (data.audio) {
+      const audioPlayer = document.getElementById("audioPlayer");
+      audioPlayer.src = "https://ai-emotutor.onrender.com" + data.audio;
+      audioPlayer.style.display = "block";
+      audioPlayer.play();
     }
 
-    showSteps();
-
   } catch (err) {
-    console.error(err);
-    responseBox.innerText = "Error connecting backend";
+    console.error("ERROR:", err);
+    alert("Backend error");
   }
 }
 </script>
