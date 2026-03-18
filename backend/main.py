@@ -12,22 +12,6 @@ from openai import OpenAI
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def speech_to_text(file_path):
-    try:
-        with open(file_path, "rb") as audio_file:
-            transcript = client.audio.transcriptions.create(
-                model="gpt-4o-mini-transcribe",
-                file=audio_file
-            )
-        print("📝 Transcribed Text:")
-        print(transcript.text)
-        
-        return transcript.text.strip()
-    except Exception as e:
-        print("STT ERROR:", e)
-        return ""
-
-
 app = FastAPI()
 
 # ✅ CORS
@@ -38,44 +22,75 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# =========================
+# 🎤 SPEECH TO TEXT
+# =========================
+def transcribe_audio(file_path):
+    try:
+        with open(file_path, "rb") as f:
+            result = client.audio.transcriptions.create(
+                model="gpt-4o-transcribe",
+                file=f
+            )
+        print("📝 TEXT:", result.text)
+        return result.text
+    except Exception as e:
+        print("❌ Transcription ERROR:", e)
+        return "Could not understand audio"
+
+
 # ✅ Serve audio files
 app.mount("/audio", StaticFiles(directory="."), name="audio")
+
+
 
 # ✅ API Keys from environment
 MURF_API_KEY = os.getenv("MURF_API_KEY")
 
 
-# 🔊 Murf Voice
+# =========================
+# 🔊 MURF VOICE
+# =========================
 def murf_voice(text):
-    url = "https://api.murf.ai/v1/speech/generate"
-
-    headers = {
-        "api-key": MURF_API_KEY,
-        "Content-Type": "application/json"
-    }
-
-    payload = {
-        "text": text,
-        "voiceId": "en-US-natalie",
-        "format": "MP3"
-    }
-
-    response = requests.post(url, json=payload, headers=headers, timeout=10)
-
-    if response.status_code != 200:
+    if not MURF_API_KEY:
         return None
 
-    data = response.json()
-    audio_url = data["audioFile"]
+    try:
+        url = "https://api.murf.ai/v1/speech/generate"
 
-    audio_data = requests.get(audio_url).content
+        headers = {
+            "api-key": MURF_API_KEY,
+            "Content-Type": "application/json"
+        }
 
-    file_path = "output.mp3"
+        payload = {
+            "text": text,
+            "voiceId": "en-US-natalie",
+            "format": "MP3"
+        }
 
-    with open(file_path, "wb") as f:
-        f.write(audio_data)
+        res = requests.post(url, json=payload, headers=headers)
 
-    return file_path
+        if res.status_code != 200:
+            print("❌ Murf Error:", res.text)
+            return None
+
+        audio_url = res.json()["audioFile"]
+        audio_data = requests.get(audio_url).content
+
+        file_path = "output.mp3"
+
+        with open(file_path, "wb") as f:
+            f.write(audio_data)
+
+        return file_path
+
+    except Exception as e:
+        print("❌ Murf Exception:", e)
+        return None
+
+
+
 
 
 from fastapi.responses import JSONResponse
@@ -85,6 +100,7 @@ async def analyze(file: UploadFile = File(...)):
 
     steps = []
 
+    # Step 1
     print("Step 1: File received")
     steps.append("Step 1: File received")
 
@@ -93,48 +109,38 @@ async def analyze(file: UploadFile = File(...)):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # 🎤 SPEECH TO TEXT
+    # Step 2
     print("Step 2: Converting speech to text")
     steps.append("Step 2: Converting speech to text")
 
-    text = speech_to_text(file_path)
+    text = transcribe_audio(file_path)
 
-    print("Recognized Text:", text)
+    # Step 3
+    print("Step 3: Detecting emotion")
+    steps.append("Step 3: Detecting emotion")
 
-    if not text or len(text) < 3:
-        return {
-            "steps": steps,
-            "response": "I couldn't understand your voice. Please speak clearly.",
-            "audio": None
-        }
+    emotion = detect_emotion(file_path)
 
-    # 😊 EMOTION
-    print("Step 3: Emotion detected")
-    steps.append("Step 3: Emotion detected")
+    # Step 4
+    print("Step 4: Generating AI response")
+    steps.append("Step 4: Generating AI response")
 
-    emotion = detect_emotion(text)
+    response_text = generate_response(text, emotion)
 
-    # 🤖 GEMINI
-    print("Step 4: Generating response")
-    steps.append("Step 4: Generating response")
+    # Step 5
+    print("Step 5: Generating voice")
+    steps.append("Step 5: Generating voice")
 
-    mode = tutor_mode(emotion)
-    tutor_text = generate_response(text, mode)
+    audio_file = murf_voice(response_text)
 
-    print("Step 5: Response ready")
-    steps.append("Step 5: Response ready")
+    # Step 6
+    print("Step 6: Done")
+    steps.append("Step 6: Done")
 
-    # 🔊 MURF
-    print("Step 6: Generating voice")
-    steps.append("Step 6: Generating voice")
-
-    audio_file = murf_voice(tutor_text)
-
-    print("Step 7: Done")
-    steps.append("Step 7: Done")
-
-    return {
+    return JSONResponse({
         "steps": steps,
-        "response": tutor_text,
-        "audio": f"/audio/{audio_file}" if audio_file else None
-    }
+        "text": text,
+        "emotion": emotion,
+        "response": response_text,
+        "audio": f"/{audio_file}" if audio_file else None
+    })
