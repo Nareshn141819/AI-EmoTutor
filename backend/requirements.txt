@@ -5,3 +5,5 @@ google-generativeai
 python-multipart
 openai-whisper
 ffmpeg-python
+openai
+python-dotenv
