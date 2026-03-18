@@ -87,7 +87,7 @@
   <div class="output">
     <b>Here is your answer:
     </b>
-    <p id="responseText">Wait</p>
+    <p id="responseText"></p>
   </div>
 
   <audio id="audioPlayer" controls></audio>
@@ -130,18 +130,20 @@ function stopRecording() {
 async function analyzeAudio() {
 
   const fileInput = document.getElementById("fileInput").files[0];
-
   let audioToSend = fileInput ? fileInput : recordedBlob;
 
   if (!audioToSend) {
-    alert("Upload or record audio first");
+    alert("Upload or record audio first!");
     return;
   }
 
   const formData = new FormData();
-  formData.append("file", audioToSend, "recording.wav");
+  formData.append("file", audioToSend, "audio.webm");
 
-  document.getElementById("responseText").innerText = "Processing...";
+  const responseBox = document.getElementById("responseText");
+
+  // 🟡 Show logs in same box
+  responseBox.innerText = "Processing...\n";
 
   try {
     const res = await fetch("https://ai-emotutor.onrender.com/analyze/", {
@@ -151,21 +153,35 @@ async function analyzeAudio() {
 
     const data = await res.json();
 
-    console.log("FULL RESPONSE:", data);
+    // 🔄 Show logs temporarily
+    let i = 0;
 
-    document.getElementById("responseText").innerText = data.response;
+    function showSteps() {
+      if (i < data.steps.length) {
+        responseBox.innerText += data.steps[i] + "\n";
+        i++;
+        setTimeout(showSteps, 600);
+      } else {
+        // ✅ After logs → show final result
+        setTimeout(() => {
+          responseBox.innerText = data.response;
 
-    // 🔊 Play AI voice
-    if (data.audio) {
-      const audioPlayer = document.getElementById("audioPlayer");
-      audioPlayer.src = "https://ai-emotutor.onrender.com" + data.audio;
-      audioPlayer.style.display = "block";
-      audioPlayer.play();
+          // 🔊 Play audio
+          if (data.audio) {
+            const player = document.getElementById("audioPlayer");
+            player.src = "https://ai-emotutor.onrender.com" + data.audio;
+            document.getElementById("audioOutputBox").classList.remove("hidden");
+            player.play();
+          }
+        }, 800);
+      }
     }
 
+    showSteps();
+
   } catch (err) {
-    console.error("ERROR:", err);
-    alert("Backend error");
+    console.error(err);
+    responseBox.innerText = "Error connecting backend";
   }
 }
 </script>
