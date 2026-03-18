@@ -19,19 +19,37 @@ def tutor_mode(emotion):
 def generate_response(question, mode):
 
     prompt = f"""
-    You are an AI tutor.
+You are an AI EmoTutor inside an educational app.
 
-    Student question: {question}
+Your job:
+- Help students understand concepts clearly
+- Adapt your teaching style based on emotion
 
-    Teaching style: {mode}
+Student Question:
+{question}
 
-    Give a clear answer.
-    """
-    
+Detected Teaching Mode:
+{mode}
+
+Instructions:
+- If mode is "simple": explain in very easy terms
+- If mode is "encourage": be supportive and motivating
+- If mode is "challenge": ask a follow-up question or deepen thinking
+- If mode is "normal": give a balanced explanation
+
+Keep answer:
+- Clear
+- Short (3–5 lines)
+- Friendly tone
+- No extra unnecessary info
+
+Now respond as the tutor:
+"""
+
     try:
-        response = model.generate_content(f"Question: {question}, Mode: {mode}")
-        print("success")
-        return response.text
+        response = model.generate_content(prompt)
+        print("Gemini success")
+        return response.text.strip()
     except Exception as e:
         print("Gemini AI ERROR:", e)
         return "Error generating response"
