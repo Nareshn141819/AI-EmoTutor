@@ -19,6 +19,9 @@ def speech_to_text(file_path):
                 model="gpt-4o-mini-transcribe",
                 file=audio_file
             )
+        print("📝 Transcribed Text:")
+        print(transcript.text)
+        
         return transcript.text.strip()
     except Exception as e:
         print("STT ERROR:", e)
