@@ -96,47 +96,48 @@ async def analyze(file: UploadFile = File(...)):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # 🎤 AUDIO → TEXT
-    print("Step 2: Converting audio to text...")
-    steps.append("Step 2: Converting audio to text...")
+    # 🎤 SPEECH TO TEXT
+    print("Step 2: Converting speech to text")
+    steps.append("Step 2: Converting speech to text")
 
-    try:
-        result = whisper_model.transcribe(file_path)
-        text = result["text"]
-    except Exception as e:
-        print("Whisper Error:", e)
-        text = "Could not understand audio"
+    text = speech_to_text(file_path)
 
     print("Recognized Text:", text)
 
-    # 😊 Emotion
-    print("Step 3: Emotion detected!")
-    steps.append("Step 3: Emotion detected!")
+    if not text or len(text) < 3:
+        return {
+            "steps": steps,
+            "response": "I couldn't understand your voice. Please speak clearly.",
+            "audio": None
+        }
+
+    # 😊 EMOTION
+    print("Step 3: Emotion detected")
+    steps.append("Step 3: Emotion detected")
 
     emotion = detect_emotion(text)
 
-    # 🤖 Gemini
-    print("Step 4: Response starting")
-    steps.append("Step 4: Response starting")
+    # 🤖 GEMINI
+    print("Step 4: Generating response")
+    steps.append("Step 4: Generating response")
 
     mode = tutor_mode(emotion)
     tutor_text = generate_response(text, mode)
 
-    print("Step 5: Response done")
-    steps.append("Step 5: Response done")
+    print("Step 5: Response ready")
+    steps.append("Step 5: Response ready")
 
-    # 🔊 Murf
-    print("Step 6: AI Starting speech generating...")
-    steps.append("Step 6: AI Starting speech generating...")
+    # 🔊 MURF
+    print("Step 6: Generating voice")
+    steps.append("Step 6: Generating voice")
 
     audio_file = murf_voice(tutor_text)
 
-    print("Step 7: Speech Done...")
-    steps.append("Step 7: Speech Done...")
+    print("Step 7: Done")
+    steps.append("Step 7: Done")
 
-    print("Recognized Text:", text)
-
-    return JSONResponse({
+    return {
+        "steps": steps,
         "response": tutor_text,
         "audio": f"/audio/{audio_file}" if audio_file else None
-    })
+    }})
