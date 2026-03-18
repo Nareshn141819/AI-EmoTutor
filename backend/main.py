@@ -9,7 +9,23 @@ from fastapi.staticfiles import StaticFiles
 import whisper
 
 # load lightweight model
-whisper_model = whisper.load_model("tiny")
+from openai import OpenAI
+import os
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+def speech_to_text(file_path):
+    try:
+        with open(file_path, "rb") as audio_file:
+            transcript = client.audio.transcriptions.create(
+                model="gpt-4o-mini-transcribe",
+                file=audio_file
+            )
+        return transcript.text.strip()
+    except Exception as e:
+        print("STT ERROR:", e)
+        return ""
+
 
 app = FastAPI()
 
