@@ -7,6 +7,10 @@ from tutor import tutor_mode, generate_response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import whisper
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # load lightweight model
 from openai import OpenAI
